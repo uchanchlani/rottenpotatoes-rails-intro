@@ -3,18 +3,32 @@ class Movie < ActiveRecord::Base
     %w(G PG PG-13 R NC-17)
   end
 
-  def self.sort(field)
+  # for bringing sort in place, this request can be chained like a builder request
+  def self.sort_builder(builder, field)
     if field=="title"
-      order(:title)
+      builder.order(:title)
     elsif field=="release"
-      order(:release_date)
+      builder.order(:release_date)
     else
-      all()
+      builder
     end
   end
 
-  def self.with_ratings(filters)
-    where(rating: filters)
+  # for bringing ratings filter in place, this request can be chained like a builder request
+  def self.with_ratings_builder(builder, filters)
+    if filters.length>0
+      builder.where(rating: filters)
+    else
+      builder
+    end
+  end
+
+  # uses the two builders above and creates a mixture query
+  def self.sort_and_ratings_filter(sort, filters)
+    builder = all()
+    builder = sort_builder(builder, sort)
+    builder = with_ratings_builder(builder, filters)
+    builder
   end
 
 end

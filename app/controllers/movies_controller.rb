@@ -11,14 +11,37 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie.all_ratings
-    if params[:ratings]==nil or params[:ratings].keys.length==0
-      @checked_ratings = Movie.all_ratings
-      @movies = Movie.sort(params[:sort])
-    else
-      @checked_ratings = params[:ratings].keys
-      @movies = Movie.with_ratings(params[:ratings].keys)
+    # initially we check if we need to replace some session variables with the params
+    if params[:ratings]!=nil and params[:ratings].keys.length > 0
+      session[:ratings] = params[:ratings]
     end
+    if params[:sort]!=nil
+      session[:sort] = params[:sort]
+    end
+    if session[:ratings]==nil
+      session[:ratings] = {}
+    end
+
+    # here we check if some params that should have been present but are not present
+    len_srating = session[:ratings]==nil ? 0 : session[:ratings].keys.length
+    len_prating = params[:ratings]==nil ? 0 : params[:ratings].keys.length
+    if (params[:sort]==nil and session[:sort]!=nil) or (len_prating==0 and len_srating>0)
+      flash.keep
+      return redirect_to sort: session[:sort], ratings: session[:ratings]
+    end
+
+    # all ratings is the same
+    @all_ratings = Movie.all_ratings
+
+    # if there are some checked ratings, we check all the ratings back as we did previously
+    if session[:ratings].keys.length==0
+      @checked_ratings = Movie.all_ratings
+    else
+      @checked_ratings = session[:ratings].keys
+    end
+
+    # finally get the movies acknowledging the sort and the filters
+    @movies = Movie.sort_and_ratings_filter(session[:sort], session[:ratings].keys)
   end
 
   def new
