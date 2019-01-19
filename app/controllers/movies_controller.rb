@@ -11,10 +11,18 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.sort(params[:sort])
+    @all_ratings = Movie.all_ratings
+    if params[:ratings]==nil or params[:ratings].keys.length==0
+      @checked_ratings = Movie.all_ratings
+      @movies = Movie.sort(params[:sort])
+    else
+      @checked_ratings = params[:ratings].keys
+      @movies = Movie.with_ratings(params[:ratings].keys)
+    end
   end
 
   def new
+    @all_ratings = Movie.all_ratings
     # default: render 'new' template
   end
 

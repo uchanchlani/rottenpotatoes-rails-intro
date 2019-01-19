@@ -11,4 +11,8 @@ module MoviesHelper
       return nil
     end
   end
+
+  def is_checked(checked_ratings, rating)
+    checked_ratings.include? rating
+  end
 end
